@@ -1,5 +1,7 @@
 # LuoguPaintBoard-TeamHelper
 
+![](/LuoguPaintBoard-TeamHelper/Moeditor/raw/master/screenshots/main.png)
+
 一个用于团队合作的洛谷冬日绘版解决方案。
 
 A Luogu Paint Board solution for teamwork.
