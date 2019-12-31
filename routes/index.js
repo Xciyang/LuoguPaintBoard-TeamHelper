@@ -1,14 +1,32 @@
-var express = require('express');
-var request = require('request');
-var router = express.Router();
+const express = require('express');
+const request = require('request');
+const fs = require('fs');
+const router = express.Router();
 
-let usersList = [];
-let tasksList = [];
-let serverMap = [];
 const H = 400;
 const W = 800;
 const TIMEDELAY = 10000;
 
+let usersList = [];
+let tasksList = [];
+let serverMap = [];
+let settings = {};
+
+fs.readFile(global.dirname + '/tasks.json', (err, data) => {
+  if (err) {
+    console.log('无任务文件！');
+  } else {
+    tasksList = JSON.parse(data);
+  }
+});
+
+fs.readFile(global.dirname + '/settings.json', (err, data) => {
+  if (err) {
+    console.log('设置文件有误！');
+  } else {
+    settings = JSON.parse(data);
+  }
+});
 
 let getboard = () => {
   for (let i = 0; i < H; i++) {
@@ -20,7 +38,7 @@ let getboard = () => {
   request.get('https://www.luogu.com.cn/paintBoard/board',
     (err, res, body) => {
       if (err) {
-        console.log('绘版获得失败。');
+        console.log('绘版获得失败！');
       } else {
         body.split('\n').map(function (colorStr, x) {
           colorStr.split('').map(function (color, y) {
@@ -32,9 +50,7 @@ let getboard = () => {
     }
   )
 };
-
 getboard();
-
 let runpaint = () => {
   if (serverMap && serverMap.length !== 0) {
     let nowtime = new Date().getTime();
@@ -76,31 +92,39 @@ let runpaint = () => {
 };
 runpaint();
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/', (req, res, next) => {
   return res.render('index', { arr: JSON.stringify(serverMap), nowuser: usersList.length });
 });
 
-router.post('/', function (req, res, next) {
-  let flag = 0;
+router.post('/', (req, res, next) => {
   for (let i = 0; i < usersList.length; i++) {
     if (usersList[i].cookie === req.body.usercookie) {
-      flag = 1;
-      break;
+      return res.send('Cookie已存在！');
     }
-  }
-  if (flag) {
-    throw res.send('Cookie已存在！');
   }
   usersList.push({ cookie: req.body.usercookie, lasttime: new Date().getTime() });
   return res.redirect('/');
 });
 
-router.get('/task', function (req, res, next) {
+router.get('/task', (req, res, next) => {
   return res.render('task', { nowtask: JSON.stringify(tasksList), nowuser: usersList.length });
 });
 
-router.post('/task', function (req, res, next) {
+router.post('/task', (req, res, next) => {
+  if (settings.password !== req.body.password) {
+    return res.send('密码错误！');
+  }
+  if (!req.body.task || !req.body.task.length) {
+    return res.send('任务为空！');
+  }
   tasksList = JSON.parse(req.body.task);
+  fs.writeFile(global.dirname + '/tasks.json', req.body.task, (err) => {
+    if (err) {
+      console.log('任务设置失败');
+    } else {
+      console.log('任务设置成功');
+    }
+  });
   return res.redirect('/task');
 });
 
