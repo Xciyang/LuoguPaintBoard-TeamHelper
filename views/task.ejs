@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<style>
+    .noselect {
+        -webkit-touch-callout: none;
+        /* iOS Safari */
+        -webkit-user-select: none;
+        /* Chrome/Safari/Opera */
+        -khtml-user-select: none;
+        /* Konqueror */
+        -moz-user-select: none;
+        /* Firefox */
+        -ms-user-select: none;
+        /* Internet Explorer/Edge */
+        user-select: none;
+        /* Non-prefixed version, currently*/
+    }
+</style>
+
+<body style="text-align:center" class="noselect">
+    <h1> 任务设置浏览页面 </h1>
+    <h3> 当前用户数 <%- nowuser %></h3>
+    <div style="width: 1200px;height: 600px;overflow: auto; margin:0 auto">
+        <canvas width="4000" height="2000" style="position: relative"> </canvas>
+    </div>
+    <script>
+        const H = 400;
+        const W = 800;
+        const canvas = document.getElementsByTagName('canvas')[0];
+        const colorList = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)', '#7f7f7f'];
+        let scale = 5;
+        let myarr = [];
+        let nowtask = JSON.parse('<%- nowtask %>');
+        for (let i = 0; i < H; i++) {
+            myarr[i] = [];
+            for (let j = 0; j < W; j++) {
+                myarr[i][j] = '#7f7f7f';
+            }
+        }
+        for (let i = 0; i < nowtask.length; i++) {
+            myarr[nowtask[i].x][nowtask[i].y] = colorList[nowtask[i].color];
+        }
+        function render() {
+            canvas.width = 800 * scale;
+            let ctx = canvas.getContext("2d");
+            for (let i = 0; i < H; i++) {
+                for (let j = 0; j < W; j++) {
+                    ctx.fillStyle = myarr[i][j];
+                    ctx.fillRect(j * scale, i * scale, scale, scale);
+                }
+            }
+        }
+        render();
+    </script>
+    <form method="POST">
+        <input type="text" name="task">
+        <input type="submit" value="设置任务">
+    </form>
+    <button onclick="window.location = '/'"> 前往编辑页面 </button>
+</body>
+
+</html>

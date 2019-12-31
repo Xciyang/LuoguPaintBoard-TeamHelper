@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+  .noselect {
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Chrome/Safari/Opera */
+    -khtml-user-select: none;
+    /* Konqueror */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+    user-select: none;
+    /* Non-prefixed version, currently*/
+  }
+</style>
+
+<body style="text-align:center" class="noselect">
+  <h1> 任务编辑导出页面 </h1>
+  <h3> 当前用户数 <%- nowuser %></h3>
+  <h3> 注：最后一种颜色为橡皮擦 </h3>
+  <h3> 注：贡献Cookie请保证您不会注销账号 </h3>
+  <h3> 注：Cookie格式为__client_id=xxxxxxxxxxxxxxxxxx; _uid=xxxxx; </h3>
+  <div style="width: 1200px;height: 600px;overflow: auto;margin:0 auto">
+    <canvas width="4000" height="2000" style="position: relative"> </canvas>
+  </div>
+  <button onclick="changeScale(1)"> 放大 </button>
+  <button onclick="changeScale(-1)"> 缩小 </button>
+  <button onclick="clearrrr()"> 清空绘版 </button>
+  <button onclick="exporttt()"> 导出JSON </button>
+  <script>
+    const H = 400;
+    const W = 800;
+    const canvas = document.getElementsByTagName('canvas')[0];
+    const colorList = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)', '#7f7f7f'];
+    const colorFMap = new Map();
+    let globalColor = 32;
+    let scale = 5;
+    let myarr = JSON.parse('<%- arr %>');
+    for (let i = 0; i < H; i++) {
+      for (let j = 0; j < W; j++) {
+        myarr[i][j] = colorList[myarr[i][j]];
+      }
+    }
+    for (let i = 0; i < colorList.length; i++) {
+      colorFMap.set(colorList[i], i);
+      const button = document.createElement('button');
+      button.style.height = '20px';
+      button.style.width = '20px';
+      button.style.backgroundColor = colorList[i];
+      button.onclick = function (e) { globalColor = i; }
+      document.body.append(button);
+    }
+    function changeScale(s) {
+      scale += s;
+      if (scale > 10) {
+        scale = 10;
+      } else if (scale < 1) {
+        scale = 1;
+      } else {
+        render();
+      }
+    }
+    function render() {
+      canvas.width = 800 * scale;
+      let ctx = canvas.getContext("2d");
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          ctx.fillStyle = myarr[i][j];
+          ctx.fillRect(j * scale, i * scale, scale, scale);
+        }
+      }
+    }
+    function update(y, x, color) {
+      let ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+    }
+    function exporttt() {
+      let exparr = [];
+      for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+          let a = colorFMap.get(myarr[i][j]);
+          if (a !== 32) {
+            exparr.push({ x: i, y: j, color: a });
+          }
+        }
+      }
+      let downloadElement = document.createElement('a');
+      downloadElement.href = ['data:application/json;', window.JSON.stringify(exparr)];
+      downloadElement.download = 'download.json';
+      downloadElement.click();
+    }
+    function clearrrr() {
+      for (let i = 0; i < H; i++) {
+        myarr[i] = [];
+        for (let j = 0; j < W; j++) {
+          myarr[i][j] = '#7f7f7f';
+        }
+      }
+      render();
+    }
+    canvas.addEventListener('click', function (event) {
+      let x = parseInt(event.offsetX / scale);
+      let y = parseInt(event.offsetY / scale);
+      myarr[y][x] = colorList[globalColor];
+      update(y, x, colorList[globalColor]);
+    });
+    render();
+  </script>
+  <form method="POST">
+    <input type="text" name="usercookie">
+    <input type="submit" value="贡献Cookie">
+  </form>
+  <button onclick="window.location = '/task'"> 前往任务页面 </button>
+</body>
+
+</html>
